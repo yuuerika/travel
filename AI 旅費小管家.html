@@ -1,0 +1,506 @@
+<!DOCTYPE html>
+<!-- saved from url=(0049)https://learning.n8n.tw/webhook/travel-page-sssss -->
+<html lang="zh-Hant"><link type="text/css" rel="stylesheet" href="chrome-extension://ponokiofkijoolhebggofhhibnafebna/common/default.inline.css"><script type="text/javascript" src="chrome-extension://ponokiofkijoolhebggofhhibnafebna/common/default.inline.js"></script><head><meta http-equiv="Content-Type" content="text/html; charset=UTF-8"><style data-rc-order="prependQueue" data-css-hash="2oz5pr" data-token-hash="10ive0i">.anticon{display:inline-flex;align-items:center;color:inherit;font-style:normal;line-height:0;text-align:center;text-transform:none;vertical-align:-0.125em;text-rendering:optimizeLegibility;-webkit-font-smoothing:antialiased;-moz-osx-font-smoothing:grayscale;}.anticon >*{line-height:1;}.anticon svg{display:inline-block;}.anticon .anticon .anticon-icon{display:block;}</style>
+    
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AI 旅費小管家</title>
+    <style>
+        :root {
+            --primary-color: #2563eb;
+            --primary-hover: #1d4ed8;
+            --bg-color: #f8fafc;
+            --card-bg: #ffffff;
+            --text-color: #1e293b;
+            --text-muted: #64748b;
+            --border-color: #cbd5e1;
+            --danger-color: #dc2626;
+            --success-color: #16a34a;
+            --warning-color: #d97706;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+            background-color: var(--bg-color);
+            color: var(--text-color);
+            margin: 0;
+            padding: 16px;
+            display: flex;
+            justify-content: center;
+        }
+
+        .container {
+            width: 100%;
+            max-width: 1100px;
+            display: grid;
+            grid-template-columns: 1fr;
+            gap: 16px;
+        }
+
+        @media (min-width: 768px) {
+            .container {
+                grid-template-columns: 1fr 1fr;
+            }
+            .full-width {
+                grid-column: span 2;
+            }
+        }
+
+        .card {
+            background-color: var(--card-bg);
+            border: 1px solid var(--border-color);
+            border-radius: 8px;
+            padding: 20px;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+        }
+
+        h2 {
+            margin-top: 0;
+            font-size: 1.25rem;
+            color: var(--primary-color);
+            border-bottom: 2px solid #e2e8f0;
+            padding-bottom: 8px;
+        }
+
+        label {
+            display: block;
+            margin-bottom: 6px;
+            font-weight: 600;
+            font-size: 0.9rem;
+        }
+
+        input[type="text"], input[type="number"] {
+            width: 100%;
+            padding: 10px;
+            border: 1px solid var(--border-color);
+            border-radius: 6px;
+            box-sizing: border-box;
+            font-size: 1rem;
+            margin-bottom: 12px;
+        }
+
+        button {
+            background-color: var(--primary-color);
+            color: white;
+            border: none;
+            padding: 10px 16px;
+            border-radius: 6px;
+            font-size: 1rem;
+            cursor: pointer;
+            font-weight: 600;
+            transition: background-color 0.2s;
+        }
+
+        button:hover {
+            background-color: var(--primary-hover);
+        }
+
+        button:disabled {
+            background-color: var(--text-muted);
+            cursor: not-allowed;
+        }
+
+        button.secondary {
+            background-color: #64748b;
+        }
+        button.secondary:hover {
+            background-color: #475569;
+        }
+
+        button.danger {
+            background-color: var(--danger-color);
+        }
+        button.danger:hover {
+            background-color: #b91c1c;
+        }
+
+        .summary-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 12px;
+        }
+
+        .summary-item {
+            background: #f1f5f9;
+            padding: 12px;
+            border-radius: 6px;
+            text-align: center;
+        }
+
+        .summary-item span {
+            display: block;
+            font-size: 0.85rem;
+            color: var(--text-muted);
+        }
+
+        .summary-item strong {
+            font-size: 1.2rem;
+            color: var(--text-color);
+        }
+
+        .alert {
+            padding: 10px;
+            border-radius: 6px;
+            margin-bottom: 12px;
+            font-size: 0.9rem;
+        }
+        .alert-error { background: #fee2e2; color: var(--danger-color); }
+        .alert-info { background: #e0f2fe; color: #0369a1; }
+        .alert-warning { background: #fef3c7; color: var(--warning-color); }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 8px;
+            font-size: 0.9rem;
+        }
+
+        th, td {
+            border: 1px solid var(--border-color);
+            padding: 8px;
+            text-align: left;
+        }
+
+        th {
+            background-color: #f8fafc;
+        }
+
+        .hidden {
+            display: none !important;
+        }
+
+        .loading-spinner {
+            display: inline-block;
+            width: 16px;
+            height: 16px;
+            border: 2px solid #ffffff;
+            border-radius: 50%;
+            border-top-color: transparent;
+            animation: spin 0.8s linear infinite;
+            vertical-align: middle;
+            margin-right: 6px;
+        }
+
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+    </style>
+</head>
+<body>
+
+<div class="container" aria-live="polite">
+    <!-- 區塊 ①：預算表單 -->
+    <div class="card" id="section-budget">
+        <h2>① 預算設定</h2>
+        <div id="budget-msg"><div class="alert alert-info">預算更新成功！</div></div>
+        <form id="budget-form">
+            <label for="budget-input">台幣總預算 (TWD)</label>
+            <input type="number" id="budget-input" step="0.01" min="0.01" placeholder="例如：30000" required="">
+            <button type="submit" id="btn-save-budget"><span class="btn-text">儲存預算</span></button>
+        </form>
+    </div>
+
+    <!-- 區塊 ⑤：預算、累計與餘額看板 -->
+    <div class="card" id="section-summary">
+        <h2>⑤ 旅費看板</h2>
+        <div class="summary-grid">
+            <div class="summary-item">
+                <span>總預算</span>
+                <strong id="sum-budget">30000.00</strong>
+            </div>
+            <div class="summary-item">
+                <span>已累計支出</span>
+                <strong id="sum-spent">1486.08</strong>
+            </div>
+            <div class="summary-item">
+                <span>剩餘預算</span>
+                <strong id="sum-remaining">28513.92</strong>
+            </div>
+            <div class="summary-item">
+                <span>超支金額</span>
+                <strong id="sum-over" style="color: var(--danger-color);">0.00</strong>
+            </div>
+        </div>
+    </div>
+
+    <!-- 區塊 ②：消費文字輸入 -->
+    <div class="card" id="section-input">
+        <h2>② 消費輸入</h2>
+        <div id="parse-msg"></div>
+        <form id="parse-form">
+            <label for="expense-text">請輸入單筆消費（含商品、金額與支援幣別 JPY/KRW/THB/USD/VND）</label>
+            <input type="text" id="expense-text" maxlength="500" placeholder="例如：咖啡 650 日圓" required="">
+            <button type="submit" id="btn-parse"><span class="btn-text">解析消費</span></button>
+        </form>
+    </div>
+
+    <!-- 區塊 ③ & ④：解析預覽、確認與取消 -->
+    <div class="card" id="section-preview">
+        <h2>③④ 解析預覽與確認</h2>
+        <div id="preview-container"><div class="alert alert-info">記帳成功已保存！</div></div>
+    </div>
+
+    <!-- 區塊 ⑥：已保存明細 -->
+    <div class="card full-width" id="section-expenses">
+        <h2>⑥ 已保存明細</h2>
+        <div style="overflow-x: auto;">
+            <table id="expenses-table">
+                <thead>
+                    <tr>
+                        <th>時間</th>
+                        <th>品項</th>
+                        <th>原幣金額</th>
+                        <th>幣別</th>
+                        <th>適用匯率 (日期)</th>
+                        <th>台幣金額 (TWD)</th>
+                    </tr>
+                </thead>
+                <tbody id="expenses-tbody"><tr><td>-</td><td>範例列_匯入後刪除</td><td>650</td><td>JPY</td><td>0.22 ()</td><td><strong>143</strong></td></tr><tr><td>2026/11/4 下午7:41:53</td><td>咖啡</td><td>650</td><td>JPY</td><td>0.2115 (2026-11-04)</td><td><strong>137.48</strong></td></tr><tr><td>2026/11/4 下午8:03:55</td><td>咖啡</td><td>650</td><td>JPY</td><td>0.2112 (2026-11-04)</td><td><strong>137.28</strong></td></tr><tr><td>2026/11/4 下午8:36:23</td><td>咖啡</td><td>1030</td><td>THB</td><td>1.0372 (2026-11-04)</td><td><strong>1068.32</strong></td></tr></tbody>
+            </table>
+        </div>
+    </div>
+</div>
+
+<script>
+    const API_SETTINGS = 'https://learning.n8n.tw/webhook/travel-settings-ccccc';
+    const API_PARSE = 'https://learning.n8n.tw/webhook/travel-parse-bbbbb';
+    const API_SAVE = 'https://learning.n8n.tw/webhook/travel-save-aaaaa';
+    const API_UI = 'https://learning.n8n.tw/webhook-test/travel-ui-uuuuu?format=json';
+
+    let currentRequestId = null;
+    let currentPreviewData = null;
+
+    function generateUUID() {
+        return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, function(c) {
+            var r = Math.random() * 16 | 0, v = c == 'x' ? r : (r & 0x3 | 0x8);
+            return v.toString(16);
+        });
+    }
+
+    async function apiRequest(url, data) {
+        const controller = new AbortController();
+        const timeoutId = setTimeout(() => controller.abort(), 120000);
+        try {
+            const response = await fetch(url, {
+                method: 'POST',
+                headers: { 'Content-Type': 'text/plain;charset=UTF-8' },
+                body: JSON.stringify(data),
+                credentials: 'omit',
+                signal: controller.signal
+            });
+            clearTimeout(timeoutId);
+            
+            let result;
+            const text = await response.text();
+            try {
+                result = JSON.parse(text);
+            } catch (e) {
+                throw new Error('伺服器回傳非預期的資料格式 (Non-JSON response)');
+            }
+
+            if (!response.ok) {
+                const errCode = result.error && result.error.code ? result.error.code : 'INTERNAL_ERROR';
+                const errMsg = result.error && result.error.message ? result.error.message : ('伺服器錯誤 (' + response.status + ')');
+                const err = new Error(errMsg);
+                err.code = errCode;
+                err.status = response.status;
+                err.preview = result.preview;
+                throw err;
+            }
+            return result;
+        } catch (error) {
+            if (error.name === 'AbortError') {
+                throw new Error('請求逾時（超過 120 秒），請檢查網路後重試');
+            }
+            throw error;
+        }
+    }
+
+    function updateUI(state) {
+        const settings = state.settings;
+        const expenses = state.expenses;
+        const summary = state.summary;
+
+        if (settings && settings.budget_twd) {
+            document.getElementById('budget-input').value = settings.budget_twd;
+        }
+
+        if (summary) {
+            document.getElementById('sum-budget').innerText = Number(summary.budget_twd || 0).toFixed(2);
+            document.getElementById('sum-spent').innerText = Number(summary.spent_twd || 0).toFixed(2);
+            document.getElementById('sum-remaining').innerText = Number(summary.remaining_twd || 0).toFixed(2);
+            document.getElementById('sum-over').innerText = Number(summary.over_budget_twd || 0).toFixed(2);
+        } else {
+            document.getElementById('sum-budget').innerText = '0.00';
+            document.getElementById('sum-spent').innerText = '0.00';
+            document.getElementById('sum-remaining').innerText = '0.00';
+            document.getElementById('sum-over').innerText = '0.00';
+        }
+
+        const tbody = document.getElementById('expenses-tbody');
+        tbody.innerHTML = '';
+        if (expenses && expenses.length > 0) {
+            expenses.forEach(function(item) {
+                const tr = document.createElement('tr');
+                tr.innerHTML = 
+                    '<td>' + (item.recorded_at ? new Date(item.recorded_at).toLocaleString() : '-') + '</td>' +
+                    '<td>' + escapeHtml(item.item) + '</td>' +
+                    '<td>' + item.amount + '</td>' +
+                    '<td>' + item.currency + '</td>' +
+                    '<td>' + item.rate + ' (' + item.rate_date + ')</td>' +
+                    '<td><strong>' + item.amount_twd + '</strong></td>';
+                tbody.appendChild(tr);
+            });
+        } else {
+            tbody.innerHTML = '<tr><td colspan="6" style="text-align: center; color: var(--text-muted);">尚無消費紀錄</td></tr>';
+        }
+    }
+
+    function escapeHtml(str) {
+        return str.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
+    }
+
+    async function initApp() {
+        try {
+            const res = await fetch(API_UI, { credentials: 'omit' });
+            if (res.ok) {
+                const data = await res.json();
+                updateUI(data);
+            }
+        } catch (e) {
+            console.error('初始化讀取失敗:', e);
+        }
+    }
+
+    document.getElementById('budget-form').addEventListener('submit', async function(e) {
+        e.preventDefault();
+        const msgDiv = document.getElementById('budget-msg');
+        msgDiv.innerHTML = '';
+        const btn = document.getElementById('btn-save-budget');
+        const val = parseFloat(document.getElementById('budget-input').value);
+
+        btn.disabled = true;
+        btn.innerHTML = '<span class="loading-spinner"></span>處理中...';
+
+        try {
+            const res = await apiRequest(API_SETTINGS, { budget_twd: val });
+            updateUI(res);
+            msgDiv.innerHTML = '<div class="alert alert-info">預算更新成功！</div>';
+        } catch (err) {
+            msgDiv.innerHTML = '<div class="alert alert-error">' + escapeHtml(err.message) + '</div>';
+        } finally {
+            btn.disabled = false;
+            btn.innerHTML = '<span class="btn-text">儲存預算</span>';
+        }
+    });
+
+    document.getElementById('parse-form').addEventListener('submit', async function(e) {
+        e.preventDefault();
+        const msgDiv = document.getElementById('parse-msg');
+        msgDiv.innerHTML = '';
+        const btn = document.getElementById('btn-parse');
+        const textVal = document.getElementById('expense-text').value.trim();
+
+        if (!textVal) return;
+
+        currentRequestId = generateUUID();
+        currentPreviewData = null;
+
+        btn.disabled = true;
+        btn.innerHTML = '<span class="loading-spinner"></span>解析中...';
+        document.getElementById('preview-container').innerHTML = '<p style="color: var(--text-muted);">AI 正在分析消費內容...</p>';
+
+        try {
+            const res = await apiRequest(API_PARSE, { text: textVal });
+            
+            if (res.status === 'ready') {
+                currentPreviewData = res.preview;
+                document.getElementById('preview-container').innerHTML = 
+                    '<div class="alert alert-info">' +
+                    '<strong>品項：</strong> ' + escapeHtml(res.preview.item) + '<br>' +
+                    '<strong>金額：</strong> ' + res.preview.amount + ' ' + res.preview.currency + '<br>' +
+                    '<strong>預估台幣：</strong> NT$ ' + res.preview.amount_twd + ' (匯率 ' + res.preview.rate + ', ' + res.preview.rate_date + ')<br>' +
+                    '<strong>確認後預估餘額：</strong> NT$ ' + res.remaining_after_confirm_twd +
+                    '</div>' +
+                    '<div style="display: flex; gap: 8px;">' +
+                    '<button id="btn-confirm-save">確認記帳</button>' +
+                    '<button class="secondary" id="btn-cancel-preview">取消</button>' +
+                    '</div>';
+                document.getElementById('btn-confirm-save').addEventListener('click', confirmSaveExpense);
+                document.getElementById('btn-cancel-preview').addEventListener('click', cancelPreview);
+            } else if (res.status === 'needs_clarification') {
+                document.getElementById('preview-container').innerHTML = 
+                    '<div class="alert alert-warning">' +
+                    '<strong>需要釐清：</strong> ' + escapeHtml(res.message) +
+                    '</div>';
+            }
+        } catch (err) {
+            if (err.code === 'SETTINGS_REQUIRED') {
+                msgDiv.innerHTML = '<div class="alert alert-error">請先於上方設定總預算！</div>';
+            } else {
+                msgDiv.innerHTML = '<div class="alert alert-error">' + escapeHtml(err.message) + '</div>';
+            }
+            document.getElementById('preview-container').innerHTML = '<p style="color: var(--text-muted);">解析失敗，請重新輸入。</p>';
+        } finally {
+            btn.disabled = false;
+            btn.innerHTML = '<span class="btn-text">解析消費</span>';
+        }
+    });
+
+    function cancelPreview() {
+        currentPreviewData = null;
+        document.getElementById('preview-container').innerHTML = '<p style="color: var(--text-muted);">已取消該筆預覽。</p>';
+    }
+
+    async function confirmSaveExpense() {
+        if (!currentPreviewData || !currentRequestId) return;
+
+        const previewContainer = document.getElementById('preview-container');
+        const confirmBtn = document.getElementById('btn-confirm-save');
+        if (confirmBtn) confirmBtn.disabled = true;
+
+        const payload = {
+            request_id: currentRequestId,
+            item: currentPreviewData.item,
+            amount: currentPreviewData.amount,
+            currency: currentPreviewData.currency,
+            quoted_rate: currentPreviewData.rate,
+            quoted_rate_date: currentPreviewData.rate_date
+        };
+
+        try {
+            const res = await apiRequest(API_SAVE, payload);
+            if (res.saved) {
+                updateUI(res);
+                previewContainer.innerHTML = '<div class="alert alert-info">記帳成功已保存！</div>';
+                currentPreviewData = null;
+                document.getElementById('expense-text').value = '';
+            }
+        } catch (err) {
+            if (err.code === 'RATE_CHANGED') {
+                currentPreviewData = err.preview;
+                previewContainer.innerHTML = 
+                    '<div class="alert alert-warning">' +
+                    '<strong>匯率已更新！請再次確認最新金額：</strong><br>' +
+                    '<strong>品項：</strong> ' + escapeHtml(err.preview.item) + '<br>' +
+                    '<strong>金額：</strong> ' + err.preview.amount + ' ' + err.preview.currency + '<br>' +
+                    '<strong>最新預估台幣：</strong> NT$ ' + err.preview.amount_twd + ' (匯率 ' + err.preview.rate + ', ' + err.preview.rate_date + ')' +
+                    '</div>' +
+                    '<div style="display: flex; gap: 8px;">' +
+                    '<button id="btn-confirm-save">再次確認並記帳</button>' +
+                    '<button class="secondary" id="btn-cancel-preview">取消</button>' +
+                    '</div>';
+                document.getElementById('btn-confirm-save').addEventListener('click', confirmSaveExpense);
+                document.getElementById('btn-cancel-preview').addEventListener('click', cancelPreview);
+            } else {
+                previewContainer.innerHTML += '<div class="alert alert-error" style="margin-top:8px;">儲存失敗：' + escapeHtml(err.message) + '</div>';
+                if (confirmBtn) confirmBtn.disabled = false;
+            }
+        }
+    }
+
+    window.addEventListener('DOMContentLoaded', initApp);
+</script>
+
+<script type="module" src="./AI 旅費小管家_files/vce701823e78c4301a35b7e07294d87301792088814092" integrity="sha512-UKNk8GbxkABxKcXYuLkO16EleLGUkcvJWtpSNmExE0Too3ZaFAxTscNWEc1OdAv5/BikHawapSCaiD2XCmp+Bw==" data-cf-beacon="{&quot;version&quot;:&quot;2024.11.0&quot;,&quot;token&quot;:&quot;8a62215f2ae542d7ac040b46addd292e&quot;,&quot;r&quot;:1,&quot;spa&quot;:2}" crossorigin="anonymous"></script>
+
+<div class="felo-floating"></div><div class="felo-panel"></div></body></html>
